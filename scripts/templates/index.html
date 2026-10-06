@@ -53,6 +53,11 @@
     border: 1px solid var(--line); border-radius: 999px;
     padding: .05rem .5rem; margin: 0 .25rem .25rem 0;
   }
+  button.tag {
+    background: none; font-family: inherit; line-height: inherit; cursor: pointer;
+  }
+  button.tag:hover { color: var(--fg); border-color: var(--fg); }
+  button.tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .quality { margin: .75rem 0; }
   .score { font-weight: 600; }
   details { margin-top: .5rem; }
@@ -172,7 +177,7 @@ function render() {
       <div>
         ${s.featured ? '<span class="tag">Scelta editoriale</span>' : ''}
         ${s.mcp_endpoint ? `<a class="tag" href="${escapeHtml(s.mcp_endpoint)}">Remoto${s.transport ? ` · ${escapeHtml(s.transport)}` : ''}</a>` : ''}
-        ${(s.tags || []).map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+        ${(s.tags || []).map((t) => `<button type="button" class="tag" data-tag="${escapeHtml(t)}" aria-label="Filtra per tag ${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}
       </div>
     </li>`).join('');
 }
@@ -199,6 +204,13 @@ fetch('catalog.json')
     fillSelect(el('category'), catalog.categories);
     fillSelect(el('language'), [...new Set(servers.map((s) => s.language))].sort());
     for (const id of ['q', 'category', 'language', 'assessment', 'sort']) el(id).addEventListener('input', render);
+    el('list').addEventListener('click', (event) => {
+      const tag = event.target.closest('button[data-tag]');
+      if (!tag) return;
+      el('q').value = tag.dataset.tag;
+      render();
+      el('q').focus();
+    });
     render();
   })
   .catch((error) => {
